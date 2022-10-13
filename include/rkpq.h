@@ -34,7 +34,7 @@ class rkpq {
         ~rkpq();
         void updateRKPQProcParams(RKPQ_Proc_Params* params);
         bool init(uint32_t src_width, uint32_t src_height, uint32_t* src_width_stride, uint32_t dst_width, uint32_t dst_height, 
-				uint32_t alignment, uint32_t pixFormat, uint32_t src_color_space, uint32_t dst_color_space, uint32_t flag);
+				uint32_t alignment, uint32_t src_pix_format, uint32_t src_color_space, uint32_t dst_pix_format, uint32_t dst_color_space, uint32_t flag);
         bool dopq(uint32_t src_fd, uint32_t dst_fd, uint32_t mode);
     private:
         rkpq_context pqCxt_;
