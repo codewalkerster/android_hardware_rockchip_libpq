@@ -36,3 +36,36 @@ cc_prebuilt_library {
     check_elf_files: false,
     vendor: true,
 }
+
+cc_prebuilt_binary {
+    name: "rkaipq820_sd_model_rknn140.rknn",
+    allow_undefined_symbols: true,
+    proprietary: true,
+    vendor: true,
+    strip: {
+        none: true,
+    },
+    srcs: ["model/rkaipq820_sd_model_rknn140.rknn"],
+}
+
+cc_prebuilt_binary {
+    name: "rkaipq820_sr_model0_rknn140.rknn",
+    allow_undefined_symbols: true,
+    proprietary: true,
+    vendor: true,
+    strip: {
+        none: true,
+    },
+    srcs: ["model/rkaipq820_sr_model0_rknn140.rknn"],
+}
+
+cc_prebuilt_binary {
+    name: "rkaipq820_sr_model1_rknn140.rknn",
+    allow_undefined_symbols: true,
+    proprietary: true,
+    vendor: true,
+    strip: {
+        none: true,
+    },
+    srcs: ["model/rkaipq820_sr_model1_rknn140.rknn"],
+}

@@ -31,17 +31,14 @@
 
 namespace android {
 
-#define PQ_DUMP_IN_PATH "/data/pq_dump_in"
-#define PQ_DUMP_OUT_PATH "/data/pq_dump_out"
-#define PQ_CONFIG_PATH "/data/pq_config.json"
-#define VENDOR_PQ_CONFIG_PATH "/vendor/etc/pq_config.json"
-
 class PqWorker : public Worker {
   public:
   PqWorker();
   ~PqWorker() override;
 
   int Init();
+  int DeInit();
+  int InitPq(std::shared_ptr<PqBackendContext> abCtx);
   void Queue(std::shared_ptr<PqBackendContext> abCtx);
 
 
@@ -58,9 +55,5 @@ class PqWorker : public Worker {
   int iTimelineFd_;
   int iTimeline_;
   int iCurrentTimeline_;
-  int pq_index_;
-  int pq_timeline;
-  RKPQ_Proc_Params* pqProcParams_;
-  rkpq_context* pqCxt_;
 };
 } //namespace android

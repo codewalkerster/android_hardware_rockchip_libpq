@@ -25,9 +25,8 @@
 namespace android {
 
 #define PQ_MAGIC 0x83991906
-#define PQ_VERSION "Pq-1.2.1"
-#define PQ_VERSION_NAME "vendor.pq.version"
-#define PQ_DEBUG_NAME "vendor.pq.log"
+#define PQ_VERSION_NAME "vendor.tvinput.pq.version"
+#define PQ_DEBUG_NAME "vendor.tvinput.pq.log"
 
 #define PQ_ALOGE(x, ...)  \
     ALOGE("%s,line=%d " x ,__FUNCTION__,__LINE__, ##__VA_ARGS__)
@@ -70,6 +69,12 @@ enum PqStage {
     PQ_INIT_SUCCESS,
     PQ_VERITY_SRC_SUCCESS,
     PQ_VERITY_DST_SUCCESS,
+};
+
+enum PqInitState {
+    RKSWPQ_UN_INIT = 0,
+    RKSWPQ_INITING,
+    RKSWPQ_INIT_SUCCESS,
 };
 
 enum PqBufferMask {

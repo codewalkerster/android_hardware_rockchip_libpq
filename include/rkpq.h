@@ -18,8 +18,6 @@
 
 namespace android {
 
-#define PQ_CONFIG_PATH "/data/pq_config.json"
-
 typedef enum _rkpq_mode
 {
 	PQ_NORMAL = 1,
@@ -36,11 +34,14 @@ class rkpq {
         bool init(uint32_t src_width, uint32_t src_height, uint32_t* src_width_stride, uint32_t dst_width, uint32_t dst_height, 
 				uint32_t alignment, uint32_t src_pix_format, uint32_t src_color_space, uint32_t dst_pix_format, uint32_t dst_color_space, uint32_t flag);
         bool dopq(uint32_t src_fd, uint32_t dst_fd, uint32_t mode);
+        int setDstColorSpace(uint32_t plane_id, uint32_t color_space);
+        int getResolutionInfo(uint32_t* width, uint32_t* height);
     private:
         rkpq_context pqCxt_;
         RKPQ_Proc_Params* pqProcParams_;
         int pq_timeline;
         int pq_index_;
+        mutable pthread_mutex_t mLock_;
 };
 
 }

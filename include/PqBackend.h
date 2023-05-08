@@ -33,7 +33,8 @@ public:
   PqBackend();
   ~PqBackend();
   int Init();
-
+  int DeInit();
+  int InitPq(const PqContext &ctx);
   int QueueCtxAndRun(const PqContext &ctx);
   int QueueCtxAndRunAsync(const PqContext &ctx, int *outFence);
 

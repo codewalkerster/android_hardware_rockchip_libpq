@@ -41,6 +41,8 @@ public:
   int GetDstFormat();
   // Get dst color space
   int GetDstColorSpace();
+  // Deinit pq
+  int DeInit();
 
 private:
   Pq();

@@ -98,5 +98,6 @@ class DrmApi {
 	//int set_cubic_lut(uint32_t size, uint16_t* r, uint16_t* g, uint16_t* b);
 	int set_bcsh(uint16_t brightness, uint16_t ccontrast, uint16_t saturation, uint16_t hue);
 	int get_primary_info(int *fd, uint32_t *crtc_id, uint32_t *connector_type, uint32_t *connector_type_id, uint32_t *connector_id);
-	int set_color_space(int color_space);
+	int set_color_space(uint32_t plane_id, uint32_t color_space);
+	int getResolutionInfo(uint32_t* width, uint32_t* height);
 };

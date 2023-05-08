@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 //
-// Last update 2022-08-15
+// Last update 2022-10-21
 
 #pragma once
 #ifndef __RKPQ_API_H_
@@ -51,7 +51,8 @@ extern "C"
 #define RKPQ_ACM_LUT_LENGTH_Y           9   // valid ACM_Y LUT range [0:8]
 #define RKPQ_ACM_LUT_LENGTH_H           65  // valid ACM_H LUT range [0:64]
 #define RKPQ_ACM_LUT_LENGTH_S           13  // valid ACM_S LUT range [0:12]
-#define RKPQ_SHARP_PEAKING_BAND_NUM     4   // number of valid bands for Sharp module
+#define RKPQ_SHP_PEAKING_BAND_NUM       4   // number of valid bands for Sharp module
+#define RKPQ_ZME_COEF_LENGTH            8   // valid ZME coefs range [0:7]
 
 
 /**
@@ -77,7 +78,7 @@ typedef enum _rkpq_module
     RKPQ_MODULE_SR,     /* Super Resolution */
     RKPQ_MODULE_ZME,    /* Zoom Manage Engine */
     // RKPQ_MODULE_3DLUT,  /* 3D LUT | TODO */
-    RKPQ_MODULE_MAX,
+    RKPQ_MODULE_MAX,    /* the max PQ module value, please DO NOT use this item! */
 } rkpq_module;
 
 /**
@@ -99,28 +100,38 @@ typedef enum _rkpq_query_cmd
     RKPQ_QUERY_RKNN_SUPPORT,            /* get the RKNN supported flag for SR */
     RKPQ_QUERY_MEAN_LUMA,               /* get the mean luma value (full-range) of the output image after rkpq_proc() */
     RKPQ_QUERY_MODULES_SUPPORT,         /* get the supported PQ modules */
-    RKPQ_QUERY_3DLUT_AI_TABLE,          /* get the 3D-LUT table from RKNN result */
-    RKPQ_QUERY_MAX,
+    // RKPQ_QUERY_3DLUT_AI_TABLE,          /* get the 3D-LUT table from RKNN result */
+    RKPQ_QUERY_MAX,                     /* the max query command value, please DO NOT use this item! */
 } rkpq_query_cmd;
 
 /**
  * the image formats supported
- * @Detail: bpp means 'bits per pixel'
+ * @Detail:
+ *  - bpp means 'bits per pixel',
+ *  - bpc means 'bits per component'.
  */
 typedef enum _rkpq_image_format
 {
     // YUV
-    RKPQ_IMG_FMT_NV24,      /* 2 plane YCbCr, 24bpp, non-subsampled Cr:Cb plane */
-    RKPQ_IMG_FMT_NV16,      /* 2 plane YCbCr, 16bpp, 2x1 subsampled Cr:Cb plane */
-    RKPQ_IMG_FMT_NV12,      /* 2 plane YCbCr, 12bpp, 2x2 subsampled Cr:Cb plane */
-    RKPQ_IMG_FMT_NV15,      /* reserved */
+    RKPQ_IMG_FMT_YUV_MIN = 0,   /* the min YUV format value, please DO NOT use this item! */
+    RKPQ_IMG_FMT_NV24 = 0,      /* YUV444SP, 2 plane YCbCr, 24bpp/8 bpc, non-subsampled Cr:Cb plane */
+    RKPQ_IMG_FMT_NV16,          /* YUV422SP, 2 plane YCbCr, 16bpp/8 bpc, 2x1 subsampled Cr:Cb plane */
+    RKPQ_IMG_FMT_NV12,          /* YUV420SP, 2 plane YCbCr, 12bpp/8 bpc, 2x2 subsampled Cr:Cb plane */
+    RKPQ_IMG_FMT_NV15,          /* YUV420SP, 2 plane YCbCr, 15bpp/10bpc, 10bit packed data */
+    RKPQ_IMG_FMT_NV20,          /* YUV422SP, 2 plane YCbCr, 20bpp/10bpc, 10bit packed data, output supported only */ /* reserved */
+    RKPQ_IMG_FMT_NV30,          /* YUV444SP, 2 plane YCbCr, 30bpp/10bpc, 10bit packed data, output supported only */
+    RKPQ_IMG_FMT_P010,          /* YUV420SP, 2 plane YCbCr, 24bpp/16bpc, 10bit unpacked data with MSB aligned, output supported only */
+    RKPQ_IMG_FMT_P210,          /* YUV422SP, 2 plane YCbCr, 32bpp/16bpc, 10bit unpacked data with MSB aligned, output supported only */ /* reserved */
+    RKPQ_IMG_FMT_Q410,          /* YUV444P , 3 plane YCbCr, 48bpp/16bpc, 10bit unpacked data with MSB aligned, output supported only */
+    RKPQ_IMG_FMT_YUV_MAX,       /* the max YUV format value, please DO NOT use this item! */
 
     // RGB
-    RKPQ_IMG_FMT_RGBA,      /* RGBA8888, 32bpp */
-    RKPQ_IMG_FMT_RG24,      /* RGB888, 24bpp */
-    RKPQ_IMG_FMT_BG24,      /* BGR888, 24bpp */
-    RKPQ_IMG_FMT_AB30,      /* reserved */
-    RKPQ_IMG_FMT_MAX,
+    RKPQ_IMG_FMT_RGB_MIN = 1000,/* the min RGB format value, please DO NOT use this item! */
+    RKPQ_IMG_FMT_RGBA = 1000,   /* RGBA8888, 32bpp */
+    RKPQ_IMG_FMT_RG24,          /* RGB888, 24bpp */
+    RKPQ_IMG_FMT_BG24,          /* BGR888, 24bpp */
+    RKPQ_IMG_FMT_AB30,          /* ABGR2101010, reserved */
+    RKPQ_IMG_FMT_RGB_MAX,       /* the max RGB format value, please DO NOT use this item! */
 } rkpq_img_fmt;
 
 /**
@@ -128,15 +139,15 @@ typedef enum _rkpq_image_format
  */
 typedef enum _rkpq_color_space
 {
-    RKPQ_CLR_SPC_YUV_601_LIMITED,       /* ITU-R BT.601 */
-    RKPQ_CLR_SPC_YUV_601_FULL,          /* ITU-R BT.601 Full Range */
-    RKPQ_CLR_SPC_YUV_709_LIMITED,       /* ITU-R BT.709 */
-    RKPQ_CLR_SPC_YUV_709_FULL,          /* ITU-R BT.709 Full Range */
-    RKPQ_CLR_SPC_YUV_2020_LIMITED,      /* reserved. ITU-R BT.2020 */
-    RKPQ_CLR_SPC_YUV_2020_FULL,         /* reserved. ITU-R BT.2020 Full Range */
-    RKPQ_CLR_SPC_RGB_LIMITED,           /* RGB Limited Range */
-    RKPQ_CLR_SPC_RGB_FULL,              /* RGB Full Range */
-    RKPQ_CLR_SPC_MAX,
+    RKPQ_CLR_SPC_YUV_601_LIMITED,       /* ITU-R BT.601 (Limited-range) for SDTV (720P) */
+    RKPQ_CLR_SPC_YUV_601_FULL,          /* ITU-R BT.601 Full-range      for SDTV (720P) */
+    RKPQ_CLR_SPC_YUV_709_LIMITED,       /* ITU-R BT.709 (Limited-range) for HDTV (1080P) */
+    RKPQ_CLR_SPC_YUV_709_FULL,          /* ITU-R BT.709 Full-range      for HDTV (1080P) */
+    RKPQ_CLR_SPC_YUV_2020_LIMITED,      /* reserved. ITU-R BT.2020 (Limited-range) for UHDTV (4K/8K) */
+    RKPQ_CLR_SPC_YUV_2020_FULL,         /* reserved. ITU-R BT.2020 Full-range      for UHDTV (4K/8K) */
+    RKPQ_CLR_SPC_RGB_LIMITED,           /* RGB Limited-range */
+    RKPQ_CLR_SPC_RGB_FULL,              /* RGB Full-range */
+    RKPQ_CLR_SPC_MAX,                   /* the max color space value, please DO NOT use this item! */
 } rkpq_clr_spc;
 
 /**
@@ -249,6 +260,8 @@ typedef struct _RKPQ_Proc_Params
     uint32_t            bEnableConvertFLOnly;               /* [i] enable convert input image range between full and limited, */
                                                             /* init flag 'RKPQ_FLAG_CVT_RANGE_ONLY' shoule be set in 'RKPQ_Init_Params::nInitFlag' */
     uint32_t            nProcWidth;                         /* [i] proc width ref to 'stSrcImgInfo::nPixWid', range: [0, 9600], unit: pixel */
+    uint32_t            bIsIntraFrame;                      /* [i] if the video frame is the intra frame */
+    uint32_t            aReservedFlags[24];                 /* reserved array, for new flags added in the future */
 
     // return values
     uint32_t            nMeanLuma;                          /* [o] return the mean luma value (full-range) after rkpq_proc() */
@@ -385,27 +398,27 @@ typedef struct _RKPQ_SHP_CFG
     // M4_BOOL_DESC("bEnableCoringCtrl", "1")
     bool        bEnableCoringCtrl;
     // M4_ARRAY_MARK_DESC("aCoringCtrlRatio", "u16", M4_SIZE(1,4),  M4_RANGE(512, 2048), "[2048,2048,2048,2048]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aCoringCtrlRatio[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aCoringCtrlRatio[RKPQ_SHP_PEAKING_BAND_NUM];
     // M4_ARRAY_MARK_DESC("aCoringCtrlZero", "u16", M4_SIZE(1,4),  M4_RANGE(0, 32), "[4,4,4,4]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aCoringCtrlZero[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aCoringCtrlZero[RKPQ_SHP_PEAKING_BAND_NUM];
     // M4_ARRAY_MARK_DESC("aCoringCtrlThrd", "u16", M4_SIZE(1,4),  M4_RANGE(0, 64), "[40,40,40,40]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aCoringCtrlThrd[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aCoringCtrlThrd[RKPQ_SHP_PEAKING_BAND_NUM];
 
     // M4_BOOL_DESC("bEnableGainCtrl", "1")
     bool        bEnableGainCtrl;
     // M4_ARRAY_MARK_DESC("aGainCtrlPos", "u16", M4_SIZE(1,4),  M4_RANGE(0, 2048), "[1024,1024,1024,1024]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aGainCtrlPos[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aGainCtrlPos[RKPQ_SHP_PEAKING_BAND_NUM];
 
     // M4_BOOL_DESC("bEnableLimitCtrl", "0")
     bool        bEnableLimitCtrl;
     // M4_ARRAY_MARK_DESC("aLimitCtrlPos0", "u16", M4_SIZE(1,4),  M4_RANGE(0, 127), "[64,64,64,64]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aLimitCtrlPos0[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aLimitCtrlPos0[RKPQ_SHP_PEAKING_BAND_NUM];
     // M4_ARRAY_MARK_DESC("aLimitCtrlPos1", "u16", M4_SIZE(1,4),  M4_RANGE(0, 127), "[120,120,120,120]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aLimitCtrlPos1[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aLimitCtrlPos1[RKPQ_SHP_PEAKING_BAND_NUM];
     // M4_ARRAY_MARK_DESC("aLimitCtrlBndPos", "u16", M4_SIZE(1,4),  M4_RANGE(0, 127), "[65,65,65,65]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aLimitCtrlBndPos[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aLimitCtrlBndPos[RKPQ_SHP_PEAKING_BAND_NUM];
     // M4_ARRAY_MARK_DESC("aLimitCtrlRatio", "u16", M4_SIZE(1,4),  M4_RANGE(0, 512), "[128,128,128,128]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
-    uint16_t    aLimitCtrlRatio[RKPQ_SHARP_PEAKING_BAND_NUM];
+    uint16_t    aLimitCtrlRatio[RKPQ_SHP_PEAKING_BAND_NUM];
 
     void setDefault();
 } RKPQ_SHP_CFG;
@@ -441,6 +454,13 @@ typedef struct _RKPQ_SR_CFG
     uint32_t    nUsmCtrlOver;
     // M4_NUMBER_DESC("nUsmCtrlUnder", "u32", M4_RANGE(0,255), "128", M4_DIGIT(0))
     uint32_t    nUsmCtrlUnder;
+    // M4_NUMBER_DESC("nColorStrength", "u32", M4_RANGE(0,256), "128", M4_DIGIT(0))
+    uint32_t    nColorStrength;
+    // M4_NUMBER_DESC("nEdgeStrength", "u32", M4_RANGE(0,256), "128", M4_DIGIT(0))
+    uint32_t    nEdgeStrength;
+
+    /* for future use */
+    uint32_t    aReservedData[20];
 
     void setDefault();
 } RKPQ_SR_CFG;
@@ -454,11 +474,16 @@ typedef struct _RKPQ_ZME_CFG
     // M4_BOOL_DESC("bEnableDeringing", "1")
     bool        bEnableDeringing;
 
-    // TODO
+    // M4_ARRAY_MARK_DESC("aVerCoefs", "s16", M4_SIZE(1, 8), M4_RANGE(0, 512), "[-8, -20, 404, 180, -52, 8, 0, 0]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
+    int16_t     aVerCoefs[RKPQ_ZME_COEF_LENGTH];
+    // M4_ARRAY_MARK_DESC("aHorCoefs", "s16", M4_SIZE(1, 8), M4_RANGE(0, 512), "[4, -8, -20, 400, 180, -56, 12, 0]", M4_DIGIT(0), M4_DYNAMIC(1), "curve_table")
+    int16_t     aHorCoefs[RKPQ_ZME_COEF_LENGTH];
+
+    /* for future use */
+    uint32_t    aReservedData[23];
 
     void setDefault();
 } RKPQ_ZME_CFG;
-
 
 
 /**
@@ -527,6 +552,15 @@ int rkpq_query(rkpq_context context, rkpq_query_cmd cmd, size_t size, void* info
  * @Return: error code, 0 indicates everything is ok.
  */
 int rkpq_set_default_cfg(RKPQ_Proc_Params *pProcParam);
+
+/**
+ * @Function: rkpq_set_loglevel()
+ * @Descrptn: set the log level.
+ * @Params:
+ *      int logLevel - the log level, valid range: [0, 4]
+ * @Return: error code, 0 indicates everything is ok.
+ */
+int rkpq_set_loglevel(int logLevel);
 
 
 #ifdef __cplusplus
