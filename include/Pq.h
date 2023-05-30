@@ -20,6 +20,7 @@
 #include "PqBackend.h"
 
 namespace android {
+
 class Pq {
 public:
   static Pq* Get() { return GetInstance(); }
@@ -63,7 +64,7 @@ private:
   int VerifyDstInfo(PqContext &ctx, const PqImageInfo &dst);
   // Dump Ctx info
   int DumpCtx(const PqContext &ctx);
-  PqError bInitState_ = PqError::UnInit;
+  PqError bInitState_ = PqError::PqUnInit;
   PqVersion mVersion_;
   PqBackend mPqBackend_;
   mutable pthread_mutex_t mLock_;

@@ -55,13 +55,13 @@ int UpdatePqLogLevel();
 bool PqLogLevel();
 
 enum PqError {
-    None = 0,
-    BadVersion,
-    BadStage,
-    BadParameter,
-    UnSupported,
-    UnSucess,
-    UnInit,
+    PqNone = 0,
+    PqBadVersion,
+    PqBadStage,
+    PqBadParameter,
+    PqUnSupported,
+    PqUnSucess,
+    PqUnInit,
 };
 
 enum PqStage {

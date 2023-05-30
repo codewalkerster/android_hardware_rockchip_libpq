@@ -12,6 +12,9 @@ cc_prebuilt_library {
     strip: {
         none: true,
     },
+    shared_libs: [
+        "librknnrt",
+    ],
     check_elf_files: false,
     vendor: true,
 }
